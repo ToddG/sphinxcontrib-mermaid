@@ -36,9 +36,7 @@ logger = logging.getLogger(__name__)
 
 mapname_re = re.compile(r'<map id="(.*?)"')
 
-CSS_URL = None # css is contained in the js bundle
-
-
+CSS_URL = None  # css is contained in the js bundle
 
 
 class mermaid(nodes.General, nodes.Inline, nodes.Element):
@@ -127,7 +125,6 @@ class Mermaid(Directive):
 
 
 class MermaidClassDiagram(Mermaid):
-
     has_content = False
     required_arguments = 1
     optional_arguments = 100
@@ -179,15 +176,16 @@ def render_mm(self, code, options, format, prefix='mermaid'):
     mm_args = [mermaid_cmd, '-i', tmpfn, '-o', outfn]
     mm_args.extend(self.builder.config.mermaid_params)
     if self.builder.config.mermaid_sequence_config:
-       mm_args.extend('--configFile', self.builder.config.mermaid_sequence_config)
+        mm_args.extend('--configFile', self.builder.config.mermaid_sequence_config)
 
     try:
         p = Popen(mm_args, shell=mermaid_cmd_shell, stdout=PIPE, stdin=PIPE, stderr=PIPE)
     except OSError as err:
-        if err.errno != ENOENT:   # No such file or directory
+        if err.errno != ENOENT:  # No such file or directory
             raise
         logger.warning('command %r cannot be run (needed for mermaid '
                        'output), check the mermaid_cmd setting' % mermaid_cmd)
+        logger.warning(f'mm_args: {mm_args}, shell={mermaid_cmd_shell}')
         return None, None
 
     stdout, stderr = p.communicate(code)
@@ -196,15 +194,15 @@ def render_mm(self, code, options, format, prefix='mermaid'):
 
     if p.returncode != 0:
         raise MermaidError('Mermaid exited with error:\n[stderr]\n%s\n'
-                            '[stdout]\n%s' % (stderr, stdout))
+                           '[stdout]\n%s' % (stderr, stdout))
     if not os.path.isfile(outfn):
         raise MermaidError('Mermaid did not produce an output file:\n[stderr]\n%s\n'
-                            '[stdout]\n%s' % (stderr, stdout))
+                           '[stdout]\n%s' % (stderr, stdout))
     return relfn, outfn
 
 
 def _render_mm_html_raw(self, node, code, options, prefix='mermaid',
-                   imgcls=None, alt=None):
+                        imgcls=None, alt=None):
     if self._mermaid_js_url not in self.builder.script_files:
         self.builder.script_files.append(self._mermaid_js_url)
     if CSS_URL and CSS_URL not in self.builder.css_files:
@@ -234,12 +232,12 @@ def render_mm_html(self, node, code, options, prefix='mermaid',
     format = self.builder.config.mermaid_output_format
     if format == 'raw':
         return _render_mm_html_raw(self, node, code, options, prefix='mermaid',
-                   imgcls=None, alt=None)
+                                   imgcls=None, alt=None)
 
     try:
         if format not in ('png', 'svg'):
             raise MermaidError("mermaid_output_format must be one of 'raw', 'png', "
-                                "'svg', but is %r" % format)
+                               "'svg', but is %r" % format)
 
         fname, outfn = render_mm(self, code, options, format, prefix)
     except MermaidError as exc:
@@ -285,9 +283,10 @@ def render_mm_latex(self, node, code, options, prefix='mermaid'):
         try:
             p = Popen(mm_args, stdout=PIPE, stdin=PIPE, stderr=PIPE)
         except OSError as err:
-            if err.errno != ENOENT:   # No such file or directory
+            if err.errno != ENOENT:  # No such file or directory
                 raise
-            logger.warning('command %r cannot be run (needed to crop pdf), check the mermaid_cmd setting' % self.builder.config.mermaid_pdfcrop)
+            logger.warning(
+                'command %r cannot be run (needed to crop pdf), check the mermaid_cmd setting' % self.builder.config.mermaid_pdfcrop)
             return None, None
 
         stdout, stderr = p.communicate()
@@ -296,10 +295,10 @@ def render_mm_latex(self, node, code, options, prefix='mermaid'):
 
         if p.returncode != 0:
             raise MermaidError('PdfCrop exited with error:\n[stderr]\n%s\n'
-                                '[stdout]\n%s' % (stderr, stdout))
+                               '[stdout]\n%s' % (stderr, stdout))
         if not os.path.isfile(outfn):
             raise MermaidError('PdfCrop did not produce an output file:\n[stderr]\n%s\n'
-                                '[stdout]\n%s' % (stderr, stdout))
+                               '[stdout]\n%s' % (stderr, stdout))
 
         fname = '{filename[0]}-crop{filename[1]}'.format(filename=os.path.splitext(fname))
 
